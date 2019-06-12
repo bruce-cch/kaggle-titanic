@@ -12,21 +12,21 @@ import random as rnd
 # visualization
 import seaborn as sns
 import matplotlib.pyplot as plt
-%matplotlib inline
+#%matplotlib inline
 
 # machine learning
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression, SGDClassifier, Perceptron
 from sklearn.svm import SVC, LinearSVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
-from sklearn.linear_model import Perceptron
-from sklearn.linear_model import SGDClassifier
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import cross_val_score, GridSearchCV
 
-
-train_df = pd.read_csv('../input/train.csv')
-test_df = pd.read_csv('../input/test.csv')
+train_df = pd.read_csv('~/Downloads/pythonwork/kaggle/titanic/train.csv')
+test_df = pd.read_csv('~/Downloads/pythonwork/kaggle/titanic/test.csv')
+#train_df = pd.read_csv('../input/train.csv')
+#test_df = pd.read_csv('../input/test.csv')
 combine = [train_df, test_df]
 
 print(train_df.columns.values)
@@ -335,8 +335,7 @@ coeff_df["Correlation"] = pd.Series(logreg.coef_[0])
 coeff_df.sort_values(by='Correlation', ascending=False)
 
 
-# Support Vector Machines
-
+#Support Vector Machines
 svc = SVC()
 svc.fit(X_train, Y_train)
 Y_pred = svc.predict(X_test)
@@ -352,7 +351,6 @@ acc_knn
 
 
 # Gaussian Naive Bayes
-
 gaussian = GaussianNB()
 gaussian.fit(X_train, Y_train)
 Y_pred = gaussian.predict(X_test)
@@ -436,21 +434,60 @@ submission = pd.DataFrame({
         "PassengerId": test_df["PassengerId"],
         "Survived": Y_pred
     })
-# submission.to_csv('../output/submission.csv', index=False)
+#submission.to_csv('../output/submission.csv', index=False)
 
 
+#Support Vector Machines GridSearch
+param_grid = [ { 'kernel': ['rbf'],
+                 'C': [ 0.001, 0.01, 0.1, 1, 10, 100 ],
+                 'gamma': [ 0.001, 0.01, 0.1, 1, 10, 100 ] },
+               { 'kernel': ['linear'],
+                  'C': [ 0.001, 0.01, 0.1, 1, 10, 100 ] } ]
+
+grid_search = GridSearchCV( SVC(), param_grid, cv=5 )
+grid_search.fit( X_train, Y_train )
+print( 'The Best parameters of SVC: {}'.format( grid_search.best_params_ ) )
+print( 'The Best CV Score of SVC: {:.2f}'.format( grid_search.best_score_ ) )
+
+#The Best parameters of SVC: {'C': 1, 'gamma': 0.1, 'kernel': 'rbf'}
+
+svc = SVC( C= 1, gamma= 0.1, kernel= 'rbf' )
+svc.fit(X_train, Y_train)
+Y_pred = svc.predict(X_test)
+acc_svc = round(svc.score(X_train, Y_train) * 100, 2)
+acc_svc
+submission = pd.DataFrame({
+        "PassengerId": test_df["PassengerId"],
+        "Survived": Y_pred})
+
+submission.to_csv( '~/Downloads/pythonwork/kaggle/titanic/SVC_gridsearch_2019_6_12.csv' )
 
 
+#KNN GridSearch
+param_grid = [ { 'algorithm':[ 'ball_tree' ],
+                 'leaf_size' : [ 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60 ],
+                 'p': [ 1, 2 ] },
+               { 'algorithm':[ 'kd_tree' ],
+                 'leaf_size' : [ 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60 ],
+                 'p': [ 1, 2 ] },
+               { 'algorithm':[ 'brute' ],
+                 'p': [ 1, 2 ]} ]
+grid_search = GridSearchCV( KNeighborsClassifier(), param_grid, cv=5 )
+grid_search.fit( X_train, Y_train )
+print( 'The Best parameters of KNN: {}'.format( grid_search.best_params_ ) )
+print( 'The Best CV Score of KNN: {:.2f}'.format( grid_search.best_score_ ) )
 
-
-
-
-
-
-
-
-
-
+#The Best parameters of KNN: {'algorithm': 'ball_tree', 'leaf_size': 10, 'p': 1}
+#The Best CV Score of KNN: 0.81
+knn = KNeighborsClassifier( algorithm = 'ball_tree', leaf_size=10, p= 1, n_jobs=-1 )
+knn.fit(X_train, Y_train)
+Y_pred = knn.predict(X_test)
+acc_knn = round(knn.score(X_train, Y_train) * 100, 2)
+acc_knn
+submission = pd.DataFrame({
+        "PassengerId": test_df["PassengerId"],
+        "Survived": Y_pred})
+submission.to_csv( '~/Downloads/pythonwork/kaggle/titanic/KNN_gridsearch_2019_6_12.csv' )
 
 
 
