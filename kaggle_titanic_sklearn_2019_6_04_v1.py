@@ -507,7 +507,7 @@ param_grid = [ { 'RF__criterion': [ 'gini' ],
 
 pipe = Pipeline([ ( 'RF', RandomForestClassifier() ) ])
 #pipe.fit(X_train, Y_train)
-Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5 )
+Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5, n_jobs=-1 )
 Grid.fit(X_train, Y_train)
 
 print( "The Best Cross-Validation Accuracy of RF: {:.2f}".format( Grid.best_score_ ) )
@@ -552,7 +552,7 @@ param_grid = [ { KNN__algorithm : [ 'ball_tree' ],
                  KNN__p : [ 1, 2 ]}  ]
 
 pipe = Pipeline([ ( 'KNN', KNeighborsClassifier( ) ) ])
-Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5 )
+Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5, n_jobs=-1 )
 Grid.fit(X_train, Y_train)
 print( "The Best Cross-Validation Accuracy of KNN: {:.2f}".format( Grid.best_score_ ) )
 print( 'The Best parameters of KNN: {}'.format( Grid.best_params_ ) )
@@ -596,7 +596,7 @@ param_grid = [ { LGR__penalty: [ 'l1' ],
                  LGR__multi_class: [ 'ovr', 'multinomial' ] } ]
 
 pipe = Pipeline([ ( 'LGR', LogisticRegression() ) ])
-Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5 )
+Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5, n_jobs=-1 )
 Grid.fit(X_train, Y_train)
 print( "The Best Cross-Validation Accuracy of Logistic: {:.2f}".format( Grid.best_score_ ) )
 print( 'The Best parameters of Logistic: {}'.format( Grid.best_params_ ) )
@@ -646,7 +646,7 @@ param_grid = [ { pcn__penalty:[ 'l2', 'l1', 'elasticnet' ],
                  pcn__max_iter: [ 1000, 2000, 3000, 4000 ] }]
 
 pipe = Pipeline([ ( 'pcn', Perceptron() ) ])
-Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5 )
+Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5, n_jobs=-1 )
 Grid.fit(X_train, Y_train)
 print( "The Best Cross-Validation Accuracy of Perceptron: {:.2f}".format( Grid.best_score_ ) )
 print( 'The Best parameters of Perceptron: {}'.format( Grid.best_params_ ) )
