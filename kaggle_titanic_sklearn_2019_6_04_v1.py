@@ -505,14 +505,18 @@ param_grid = [ { 'RF__criterion': [ 'gini' ],
                  'RF__min_samples_leaf': [ 2, 3, 4, 5, 6, 7, 8, 9, 10, 100, 200 ],
                  'RF__n_estimators': [ 10, 50, 100, 150, 200, 250, 300 ]} ]
 
+"""
+
 pipe = Pipeline([ ( 'RF', RandomForestClassifier() ) ])
 #pipe.fit(X_train, Y_train)
-Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5 )
+Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5, n_jobs=-1 )
 Grid.fit(X_train, Y_train)
 
+The Best Cross-Validation Accuracy of RF: 0.83
+The Best parameters of RF: {'RF__criterion': 'entropy', 'RF__max_depth': 5, 'RF__min_samples_leaf': 2, 'RF__min_samples_split': 7, 'RF__n_estimators': 50}
 print( "The Best Cross-Validation Accuracy of RF: {:.2f}".format( Grid.best_score_ ) )
 print( 'The Best parameters of RF: {}'.format( Grid.best_params_ ) )
-
+"""
 #random_forest = RandomForestClassifier( n_jobs=-1 )
 #random_forest.fit(X_train, Y_train)
 #Y_pred = random_forest.predict(X_test)
@@ -533,34 +537,36 @@ param_grid = [ n_neighbors : [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
                weights : [ ‘uniform’ , ‘distance’  ],
                leaf_size : [ 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120 ],
                p : [ 1, 2 ] ]
-"""
 
-param_grid = [ { KNN__algorithm : [ 'ball_tree' ],
-                 KNN__n_neighbors : [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ],
-                 KNN__weights : [ 'uniform' , 'distance'  ],
-                 KNN__leaf_size : [ 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120 ],
-                 KNN__p : [ 1, 2 ] },
-               { KNN__algorithm : [ 'kd_tree' ],
-                 KNN__n_neighbors : [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ],
-                 KNN__weights : [ 'uniform' , 'distance'  ],
-                 KNN__leaf_size : [ 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120 ],
-                 KNN__p : [ 1, 2 ]},
-               { KNN__algorithm : [ 'brute' ],
-                 KNN__n_neighbors : [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ],
-                 KNN__weights : [ 'uniform' , 'distance'  ],
-                 KNN__leaf_size : [ 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120 ],
-                 KNN__p : [ 1, 2 ]}  ]
 
-pipe = Pipeline([ ( 'KNN', KNeighborsClassifier( ) ) ])
-Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5 )
+param_grid = [ { 'knn__algorithm' : [ 'ball_tree' ],
+                 'knn__n_neighbors' : [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ],
+                 'knn__weights' : [ 'uniform' , 'distance'  ],
+                 'knn__leaf_size' : [ 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120 ],
+                 'knn__p' : [ 1, 2 ] },
+               { 'knn__algorithm' : [ 'kd_tree' ],
+                 'knn__n_neighbors' : [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ],
+                 'knn__weights' : [ 'uniform' , 'distance'  ],
+                 'knn__leaf_size' : [ 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120 ],
+                 'knn__p' : [ 1, 2 ]},
+               { 'knn__algorithm' : [ 'brute' ],
+                 'knn__n_neighbors' : [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ],
+                 'knn__weights' : [ 'uniform' , 'distance'  ],
+                 'knn__leaf_size' : [ 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120 ],
+                 'knn__p' : [ 1, 2 ]}  ]
+
+pipe = Pipeline([ ( 'knn', KNeighborsClassifier( ) ) ])
+Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5, n_jobs=-1 )
 Grid.fit(X_train, Y_train)
 print( "The Best Cross-Validation Accuracy of KNN: {:.2f}".format( Grid.best_score_ ) )
 print( 'The Best parameters of KNN: {}'.format( Grid.best_params_ ) )
 
+The Best Cross-Validation Accuracy of KNN: 0.82
+The Best parameters of KNN: {'knn__algorithm': 'ball_tree', 'knn__leaf_size': 5,
+ 'knn__n_neighbors': 10, 'knn__p': 1, 'knn__weights': 'uniform'}
 
 
-
-
+"""
 
 
 
@@ -574,34 +580,25 @@ print( 'The Best parameters of KNN: {}'.format( Grid.best_params_ ) )
 
 
 #Optimization of Logistic Regression
-param_grid = [ { LGR__penalty: [ 'l1' ],
-                 LGR__C: [ 0.001, 0.01, 0.1, 1, 10, 100, 1000 ],
-                 LGR__solver: [ 'newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga' ],
-                 LGR__max_iter: [ 100, 500, 1000 ],
-                 LGR__multi_class: [ 'ovr', 'multinomial' ] },
-               { LGR__penalty: [ 'l2' ],
-                 LGR__C: [ 0.001, 0.01, 0.1, 1, 10, 100, 1000 ],
-                 LGR__solver: [ 'newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga' ],
-                 LGR__max_iter: [ 100, 500, 1000 ],
-                 LGR__multi_class: [ 'ovr', 'multinomial' ] },
-               { LGR__penalty: [ 'elasticnet' ],
-                 LGR__C: [ 0.001, 0.01, 0.1, 1, 10, 100, 1000 ],
-                 LGR__solver: [ 'newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga' ],
-                 LGR__max_iter: [ 100, 500, 1000 ],
-                 LGR__multi_class: [ 'ovr', 'multinomial' ] },
-               { LGR__penalty: [ 'none' ],
-                 LGR__C: [ 0.001, 0.01, 0.1, 1, 10, 100, 1000 ],
-                 LGR__solver: [ 'newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga' ],
-                 LGR__max_iter: [ 100, 500, 1000 ],
-                 LGR__multi_class: [ 'ovr', 'multinomial' ] } ]
+"""
+param_grid = [ { 'LGR__penalty': [ 'l1' ],
+                 'LGR__C': [ 0.001, 0.01, 0.1, 1  ],
+                 'LGR__solver': [  'liblinear',  'saga' ],
+                 'LGR__max_iter': [ 100, 500, 1000 ],
+                 'LGR__eta0' : [  0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 10, 100  ] },
+               { 'LGR__penalty': [ 'l2' ],
+                 'LGR__C': [ 0.001, 0.01, 0.1, 1  ],
+                 'LGR__solver': [ 'newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga' ],
+                 'LGR__max_iter': [ 100, 500, 1000 ],
+                 'LGR__eta0' : [  0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 10, 100  ]  } ]
 
 pipe = Pipeline([ ( 'LGR', LogisticRegression() ) ])
-Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5 )
+Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5, n_jobs=-1 )
 Grid.fit(X_train, Y_train)
 print( "The Best Cross-Validation Accuracy of Logistic: {:.2f}".format( Grid.best_score_ ) )
 print( 'The Best parameters of Logistic: {}'.format( Grid.best_params_ ) )
 
-"""
+
 logreg = LogisticRegression( n_jobs=-1 )
 logreg.fit(X_train, Y_train)
 Y_pred = logreg.predict(X_test)
@@ -614,15 +611,15 @@ submission.to_csv('C:/pythonwork/titanic_sklearn_logistic_2019_6_13.csv', index=
 
 
 #Optimization of Stochastic Gradient Descent
-
-param_grid = [{ sgd__penalty : [ 'l2', 'l1', 'elasticnet' ],
-                sgd__alpha : [ 0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000 ],
-                sgd__max_iter : [ 1000, 2000, 3000 ],
-                sgd__learning_rate : [ 'constant', 'optimal', 'invscaling', 'adaptive' ],
-                sgd__power_t : [ 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 10, 100 ]  }]
+param_grid = [{ 'sgd__penalty' : [ 'l2', 'l1', 'elasticnet' ],
+                'sgd__alpha' : [ 0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000 ],
+                'sgd__max_iter' : [ 1000, 2000, 3000 ],
+                'sgd__learning_rate' : [ 'constant', 'optimal', 'invscaling', 'adaptive' ],
+                'sgd__power_t' : [ 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 10, 100 ],
+                'sgd__eta0' : [  0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 10, 100  ] }]
 
 pipe = Pipeline([ ( 'sgd', SGDClassifier() ) ])
-Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5 )
+Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5, n_jobs=-1 )
 Grid.fit(X_train, Y_train)
 print( "The Best Cross-Validation Accuracy of SGDClassifier: {:.2f}".format( Grid.best_score_ ) )
 print( 'The Best parameters of SGDClassifier: {}'.format( Grid.best_params_ ) )
@@ -641,12 +638,12 @@ submission.to_csv('C:/pythonwork/titanic_sklearn_sgd_2019_6_13.csv', index=False
 
 
 #Optimization of Perceptron
-param_grid = [ { pcn__penalty:[ 'l2', 'l1', 'elasticnet' ],
-                 pcn__alpha: [ 0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000 ],
-                 pcn__max_iter: [ 1000, 2000, 3000, 4000 ] }]
+param_grid = [ { 'pcn__penalty':[ 'l2', 'l1', 'elasticnet' ],
+                 'pcn__alpha': [ 0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000 ],
+                 'pcn__max_iter': [ 1000, 2000, 3000, 4000 ] }]
 
 pipe = Pipeline([ ( 'pcn', Perceptron() ) ])
-Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5 )
+Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5, n_jobs=-1 )
 Grid.fit(X_train, Y_train)
 print( "The Best Cross-Validation Accuracy of Perceptron: {:.2f}".format( Grid.best_score_ ) )
 print( 'The Best parameters of Perceptron: {}'.format( Grid.best_params_ ) )
