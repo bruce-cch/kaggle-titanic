@@ -24,10 +24,10 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import cross_val_score, GridSearchCV
 from sklearn.pipeline import Pipeline
 
-train_df = pd.read_csv('~/Downloads/pythonwork/kaggle/titanic/train.csv')
-test_df = pd.read_csv('~/Downloads/pythonwork/kaggle/titanic/test.csv')
-#train_df = pd.read_csv('C:/pythonwork/train.csv')
-#test_df = pd.read_csv('C:/pythonwork/test.csv')
+#train_df = pd.read_csv('~/Downloads/pythonwork/kaggle/titanic/train.csv')
+#test_df = pd.read_csv('~/Downloads/pythonwork/kaggle/titanic/test.csv')
+train_df = pd.read_csv('C:/pythonwork/train.csv')
+test_df = pd.read_csv('C:/pythonwork/test.csv')
 
 #train_df = pd.read_csv('../input/train.csv')
 #test_df = pd.read_csv('../input/test.csv')
@@ -74,13 +74,17 @@ Few elderly passengers (<1%) within age range 65-80.
 
 train_df.describe(include=['O'])
 
-train_df[['Pclass', 'Survived']].groupby(['Pclass'], as_index=False).mean().sort_values(by='Survived', ascending=False)
+train_df[['Pclass', 'Survived']].groupby(['Pclass'], as_index=False).mean()\
+                                .sort_values(by='Survived', ascending=False)
 
-train_df[["Sex", "Survived"]].groupby(['Sex'], as_index=False).mean().sort_values(by='Survived', ascending=False)
+train_df[["Sex", "Survived"]].groupby(['Sex'], as_index=False).mean()\
+                                .sort_values(by='Survived', ascending=False)
 
-train_df[["SibSp", "Survived"]].groupby(['SibSp'], as_index=False).mean().sort_values(by='Survived', ascending=False)
+train_df[["SibSp", "Survived"]].groupby(['SibSp'], as_index=False).mean()\
+                               .sort_values(by='Survived', ascending=False)
 
-train_df[["Parch", "Survived"]].groupby(['Parch'], as_index=False).mean().sort_values(by='Survived', ascending=False)
+train_df[["Parch", "Survived"]].groupby(['Parch'], as_index=False).mean()\
+                               .sort_values(by='Survived', ascending=False)
 
 """
 Analyze by visualizing data
@@ -204,7 +208,8 @@ for dataset in combine:
 train_df.head()
 
 train_df['AgeBand'] = pd.cut(train_df['Age'], 5)
-train_df[['AgeBand', 'Survived']].groupby(['AgeBand'], as_index=False).mean().sort_values(by='AgeBand', ascending=True)
+train_df[['AgeBand', 'Survived']].groupby(['AgeBand'], as_index=False).mean()\
+                                 .sort_values(by='AgeBand', ascending=True)
 
 for dataset in combine:    
     dataset.loc[ dataset['Age'] <= 16, 'Age'] = 0
@@ -221,7 +226,8 @@ train_df.head()
 for dataset in combine:
     dataset['FamilySize'] = dataset['SibSp'] + dataset['Parch'] + 1
 
-train_df[['FamilySize', 'Survived']].groupby(['FamilySize'], as_index=False).mean().sort_values(by='Survived', ascending=False)
+train_df[['FamilySize', 'Survived']].groupby(['FamilySize'], as_index=False).mean()\
+                                    .sort_values(by='Survived', ascending=False)
 
 for dataset in combine:
     dataset['IsAlone'] = 0
@@ -246,7 +252,8 @@ freq_port
 for dataset in combine:
     dataset['Embarked'] = dataset['Embarked'].fillna(freq_port)
     
-train_df[['Embarked', 'Survived']].groupby(['Embarked'], as_index=False).mean().sort_values(by='Survived', ascending=False)
+train_df[['Embarked', 'Survived']].groupby(['Embarked'], as_index=False).mean()\
+                                  .sort_values(by='Survived', ascending=False)
 
 
 """
@@ -276,7 +283,8 @@ test_df['Fare'].fillna(test_df['Fare'].dropna().median(), inplace=True)
 test_df.head()
 
 train_df['FareBand'] = pd.qcut(train_df['Fare'], 4)
-train_df[['FareBand', 'Survived']].groupby(['FareBand'], as_index=False).mean().sort_values(by='FareBand', ascending=True)
+train_df[['FareBand', 'Survived']].groupby(['FareBand'], as_index=False).mean()\
+                                  .sort_values(by='FareBand', ascending=True)
 
 
 for dataset in combine:
@@ -480,16 +488,18 @@ The Best Cross-Validation Accuracy: 0.82
  'DT__splitter': 'random'}
 """
 
-#decision_tree = DecisionTreeClassifier()
-#decision_tree.fit(X_train, Y_train)
-#Y_pred = decision_tree.predict(X_test)
-#acc_decision_tree = round(decision_tree.score(X_train, Y_train) * 100, 2)
-#acc_decision_tree
+decision_tree = DecisionTreeClassifier( criterion= 'entropy', max_depth= 5,
+                                        min_samples_leaf = 2,
+                                        min_samples_split = 2,
+                                        splitter = 'random' )
+decision_tree.fit(X_train, Y_train)
+Y_pred = decision_tree.predict(X_test)
+acc_decision_tree = round(decision_tree.score(X_train, Y_train) * 100, 2)
+acc_decision_tree
 
-"""
 submission = pd.DataFrame({ "PassengerId": test_df["PassengerId"], "Survived": Y_pred})
 submission.to_csv('C:/pythonwork/titanic_sklearn_tree_2019_6_13.csv', index=False)
-"""
+
 
 
 
@@ -505,162 +515,183 @@ param_grid = [ { 'RF__criterion': [ 'gini' ],
                  'RF__min_samples_leaf': [ 2, 3, 4, 5, 6, 7, 8, 9, 10, 100, 200 ],
                  'RF__n_estimators': [ 10, 50, 100, 150, 200, 250, 300 ]} ]
 
+"""
+
 pipe = Pipeline([ ( 'RF', RandomForestClassifier() ) ])
 #pipe.fit(X_train, Y_train)
-Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5 )
+Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5, n_jobs=-1 )
 Grid.fit(X_train, Y_train)
 
+The Best Cross-Validation Accuracy of RF: 0.83
+The Best parameters of RF: {'RF__criterion': 'entropy', 'RF__max_depth': 5,
+'RF__min_samples_leaf': 2, 'RF__min_samples_split': 7, 'RF__n_estimators': 50}
 print( "The Best Cross-Validation Accuracy of RF: {:.2f}".format( Grid.best_score_ ) )
 print( 'The Best parameters of RF: {}'.format( Grid.best_params_ ) )
-
-#random_forest = RandomForestClassifier( n_jobs=-1 )
-#random_forest.fit(X_train, Y_train)
-#Y_pred = random_forest.predict(X_test)
-#random_forest.score(X_train, Y_train)
-#acc_random_forest = round(random_forest.score(X_train, Y_train) * 100, 2)
-#acc_random_forest
-
 """
-submission = pd.DataFrame({ "PassengerId": test_df["PassengerId"], "Survived": Y_pred})
+random_forest = RandomForestClassifier( criterion= 'entropy',
+                                        max_depth= 5,
+                                        min_samples_leaf= 2,
+                                        min_samples_split= 7,
+                                        n_estimators= 50, n_jobs=-1 )
+random_forest.fit(X_train, Y_train)
+Y_pred = random_forest.predict(X_test)
+random_forest.score(X_train, Y_train)
+acc_random_forest = round(random_forest.score(X_train, Y_train) * 100, 2)
+acc_random_forest
+
+submission = pd.DataFrame({ "PassengerId": test_df["PassengerId"],
+                            "Survived": Y_pred})
+
 submission.to_csv('C:/pythonwork/titanic_sklearn_rf_2019_6_13.csv', index=False)
-"""
+
 
 
 #Optimization of KNN
-
 """
 param_grid = [ n_neighbors : [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ],
                weights : [ ‘uniform’ , ‘distance’  ],
                leaf_size : [ 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120 ],
                p : [ 1, 2 ] ]
-"""
 
-param_grid = [ { KNN__algorithm : [ 'ball_tree' ],
-                 KNN__n_neighbors : [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ],
-                 KNN__weights : [ 'uniform' , 'distance'  ],
-                 KNN__leaf_size : [ 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120 ],
-                 KNN__p : [ 1, 2 ] },
-               { KNN__algorithm : [ 'kd_tree' ],
-                 KNN__n_neighbors : [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ],
-                 KNN__weights : [ 'uniform' , 'distance'  ],
-                 KNN__leaf_size : [ 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120 ],
-                 KNN__p : [ 1, 2 ]},
-               { KNN__algorithm : [ 'brute' ],
-                 KNN__n_neighbors : [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ],
-                 KNN__weights : [ 'uniform' , 'distance'  ],
-                 KNN__leaf_size : [ 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120 ],
-                 KNN__p : [ 1, 2 ]}  ]
 
-pipe = Pipeline([ ( 'KNN', KNeighborsClassifier( ) ) ])
-Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5 )
+param_grid = [ { 'knn__algorithm' : [ 'ball_tree' ],
+                 'knn__n_neighbors' : [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ],
+                 'knn__weights' : [ 'uniform' , 'distance'  ],
+                 'knn__leaf_size' : [ 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120 ],
+                 'knn__p' : [ 1, 2 ] },
+               { 'knn__algorithm' : [ 'kd_tree' ],
+                 'knn__n_neighbors' : [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ],
+                 'knn__weights' : [ 'uniform' , 'distance'  ],
+                 'knn__leaf_size' : [ 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120 ],
+                 'knn__p' : [ 1, 2 ]},
+               { 'knn__algorithm' : [ 'brute' ],
+                 'knn__n_neighbors' : [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ],
+                 'knn__weights' : [ 'uniform' , 'distance'  ],
+                 'knn__leaf_size' : [ 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120 ],
+                 'knn__p' : [ 1, 2 ]}  ]
+
+pipe = Pipeline([ ( 'knn', KNeighborsClassifier( ) ) ])
+Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5, n_jobs=-1 )
 Grid.fit(X_train, Y_train)
 print( "The Best Cross-Validation Accuracy of KNN: {:.2f}".format( Grid.best_score_ ) )
 print( 'The Best parameters of KNN: {}'.format( Grid.best_params_ ) )
 
+The Best Cross-Validation Accuracy of KNN: 0.82
+The Best parameters of KNN: {'knn__algorithm': 'ball_tree', 'knn__leaf_size': 5,
+ 'knn__n_neighbors': 10, 'knn__p': 1, 'knn__weights': 'uniform'}
+
+
+"""
 
 
 
-
-
-
-
-#knn = KNeighborsClassifier( n_jobs=-1 )
-#knn.fit(X_train, Y_train)
-#Y_pred = knn.predict(X_test)
-#acc_knn = round(knn.score(X_train, Y_train) * 100, 2)
-#acc_knn
-#submission = pd.DataFrame({ "PassengerId": test_df["PassengerId"], "Survived": Y_pred})
-#submission.to_csv('C:/pythonwork/titanic_sklearn_knn_2019_6_13.csv', index=False)
+knn = KNeighborsClassifier( algorithm=  'ball_tree', leaf_size= 5,
+                            n_neighbors= 10, p= 1, weights= 'uniform',
+                            n_jobs=-1 )
+knn.fit(X_train, Y_train)
+Y_pred = knn.predict(X_test)
+acc_knn = round(knn.score(X_train, Y_train) * 100, 2)
+acc_knn
+submission = pd.DataFrame({ "PassengerId": test_df["PassengerId"],
+                            "Survived": Y_pred})
+submission.to_csv('C:/pythonwork/titanic_sklearn_knn_2019_6_13.csv', index=False)
 
 
 #Optimization of Logistic Regression
-param_grid = [ { LGR__penalty: [ 'l1' ],
-                 LGR__C: [ 0.001, 0.01, 0.1, 1, 10, 100, 1000 ],
-                 LGR__solver: [ 'newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga' ],
-                 LGR__max_iter: [ 100, 500, 1000 ],
-                 LGR__multi_class: [ 'ovr', 'multinomial' ] },
-               { LGR__penalty: [ 'l2' ],
-                 LGR__C: [ 0.001, 0.01, 0.1, 1, 10, 100, 1000 ],
-                 LGR__solver: [ 'newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga' ],
-                 LGR__max_iter: [ 100, 500, 1000 ],
-                 LGR__multi_class: [ 'ovr', 'multinomial' ] },
-               { LGR__penalty: [ 'elasticnet' ],
-                 LGR__C: [ 0.001, 0.01, 0.1, 1, 10, 100, 1000 ],
-                 LGR__solver: [ 'newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga' ],
-                 LGR__max_iter: [ 100, 500, 1000 ],
-                 LGR__multi_class: [ 'ovr', 'multinomial' ] },
-               { LGR__penalty: [ 'none' ],
-                 LGR__C: [ 0.001, 0.01, 0.1, 1, 10, 100, 1000 ],
-                 LGR__solver: [ 'newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga' ],
-                 LGR__max_iter: [ 100, 500, 1000 ],
-                 LGR__multi_class: [ 'ovr', 'multinomial' ] } ]
+"""
+param_grid = [ { 'LGR__penalty': [ 'l1' ],
+                 'LGR__C': [ 0.001, 0.01, 0.1, 1  ],
+                 'LGR__solver': [  'liblinear',  'saga' ],
+                 'LGR__max_iter': [ 100, 500, 600 ] },
+               { 'LGR__penalty': [ 'l2' ],
+                 'LGR__C': [ 0.001, 0.01, 0.1, 1  ],
+                 'LGR__solver': [ 'newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga' ],
+                 'LGR__max_iter': [ 100, 500, 600 ] } ]
 
 pipe = Pipeline([ ( 'LGR', LogisticRegression() ) ])
-Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5 )
+Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5, n_jobs=-1 )
 Grid.fit(X_train, Y_train)
 print( "The Best Cross-Validation Accuracy of Logistic: {:.2f}".format( Grid.best_score_ ) )
 print( 'The Best parameters of Logistic: {}'.format( Grid.best_params_ ) )
 
+The Best Cross-Validation Accuracy of Logistic: 0.81
+The Best parameters of Logistic: {'LGR__C': 0.1, 'LGR__max_iter': 100,
+                       'LGR__penalty': 'l2', 'LGR__solver': 'newton-cg'}
+
 """
-logreg = LogisticRegression( n_jobs=-1 )
+logreg = LogisticRegression( C= 0.1, max_iter= 100, penalty= 'l2',
+                             solver= 'newton-cg', n_jobs=-1 )
 logreg.fit(X_train, Y_train)
 Y_pred = logreg.predict(X_test)
 acc_log = round(logreg.score(X_train, Y_train) * 100, 2)
 acc_log
-submission = pd.DataFrame({ "PassengerId": test_df["PassengerId"], "Survived": Y_pred})
+submission = pd.DataFrame({ "PassengerId": test_df["PassengerId"],
+                            "Survived": Y_pred})
 submission.to_csv('C:/pythonwork/titanic_sklearn_logistic_2019_6_13.csv', index=False)
 
-"""
+
 
 
 #Optimization of Stochastic Gradient Descent
-
-param_grid = [{ sgd__penalty : [ 'l2', 'l1', 'elasticnet' ],
-                sgd__alpha : [ 0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000 ],
-                sgd__max_iter : [ 1000, 2000, 3000 ],
-                sgd__learning_rate : [ 'constant', 'optimal', 'invscaling', 'adaptive' ],
-                sgd__power_t : [ 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 10, 100 ]  }]
+"""
+param_grid = [{ 'sgd__penalty' : [ 'l2', 'l1', 'elasticnet' ],
+                'sgd__alpha' : [ 0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000 ],
+                'sgd__max_iter' : [ 1000, 2000, 3000 ],
+                'sgd__learning_rate' : [ 'constant', 'optimal', 'invscaling', 'adaptive' ],
+                'sgd__power_t' : [ 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 10, 100 ],
+                'sgd__eta0' : [  0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 10, 100  ] }]
 
 pipe = Pipeline([ ( 'sgd', SGDClassifier() ) ])
-Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5 )
+Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5, n_jobs=-1 )
 Grid.fit(X_train, Y_train)
 print( "The Best Cross-Validation Accuracy of SGDClassifier: {:.2f}".format( Grid.best_score_ ) )
 print( 'The Best parameters of SGDClassifier: {}'.format( Grid.best_params_ ) )
 
 
+
+The Best Cross-Validation Accuracy of SGDClassifier: 0.81
+The Best parameters of SGDClassifier: {'sgd__alpha': 0.0001, 'sgd__eta0': 0.9,
+'sgd__learning_rate': 'invscaling', 'sgd__max_iter': 1000, 'sgd__penalty': 'l2', 'sgd__power_t': 0.9}
 """
-sgd = SGDClassifier( n_jobs=-1 )
+sgd = SGDClassifier( alpha= 0.0001, eta0= 0.9, learning_rate= 'invscaling',
+                     max_iter= 1000, penalty= 'l2', power_t= 0.9, n_jobs=-1 )
 sgd.fit(X_train, Y_train)
 Y_pred = sgd.predict(X_test)
 acc_sgd = round(sgd.score(X_train, Y_train) * 100, 2)
 acc_sgd
 
-submission = pd.DataFrame({ "PassengerId": test_df["PassengerId"], "Survived": Y_pred})
+submission = pd.DataFrame({ "PassengerId": test_df["PassengerId"],
+                            "Survived": Y_pred})
 submission.to_csv('C:/pythonwork/titanic_sklearn_sgd_2019_6_13.csv', index=False)
-"""
+
 
 
 #Optimization of Perceptron
-param_grid = [ { pcn__penalty:[ 'l2', 'l1', 'elasticnet' ],
-                 pcn__alpha: [ 0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000 ],
-                 pcn__max_iter: [ 1000, 2000, 3000, 4000 ] }]
+"""
+param_grid = [ { 'pcn__penalty':[ 'l2', 'l1', 'elasticnet' ],
+                 'pcn__alpha': [ 0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000 ],
+                 'pcn__max_iter': [ 1000, 2000, 3000, 4000 ] }]
 
 pipe = Pipeline([ ( 'pcn', Perceptron() ) ])
-Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5 )
+Grid = GridSearchCV( pipe, param_grid=param_grid, cv=5, n_jobs=-1 )
 Grid.fit(X_train, Y_train)
 print( "The Best Cross-Validation Accuracy of Perceptron: {:.2f}".format( Grid.best_score_ ) )
 print( 'The Best parameters of Perceptron: {}'.format( Grid.best_params_ ) )
 
+
+The Best Cross-Validation Accuracy of Perceptron: 0.76
+The Best parameters of Perceptron: {'pcn__alpha': 0.001, 'pcn__max_iter': 1000, 'pcn__penalty': 'l1'}
 """
-perceptron = Perceptron( n_jobs=-1 )
+perceptron = Perceptron( alpha= 0.001, max_iter= 1000, penalty= 'l1', n_jobs=-1 )
 perceptron.fit(X_train, Y_train)
 Y_pred = perceptron.predict(X_test)
 acc_perceptron = round(perceptron.score(X_train, Y_train) * 100, 2)
 acc_perceptron
-submission = pd.DataFrame({ "PassengerId": test_df["PassengerId"], "Survived": Y_pred})
+submission = pd.DataFrame({ "PassengerId": test_df["PassengerId"],
+                            "Survived": Y_pred})
 submission.to_csv('C:/pythonwork/titanic_sklearn_perceptron_2019_6_13.csv', index=False)
 
-"""
+
 
 
 
