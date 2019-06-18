@@ -5,17 +5,18 @@ Created on Mon May 27 16:50:10 2019
 @author: Bruce.Chen
 """
 
+from collections import namedtuple
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import tensorflow as tf
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import Imputer #Feature Engineering
 from sklearn.preprocessing import LabelBinarizer
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import Binarizer
-from collections import namedtuple
+import tensorflow as tf
+
 
 #input the raw data
 train_data = pd.read_csv("c:/pythonwork/train.csv")
@@ -31,6 +32,8 @@ def nan_padding(data, columns):
 
 
 nan_columns = ["Age", "SibSp", "Parch"]
+not_concerned_columns = ["PassengerId","Name",
+                         "Ticket", "Fare", "Cabin", "Embarked"]
 
 train_data = nan_padding(train_data, nan_columns)
 test_data = nan_padding(test_data, nan_columns)
@@ -44,7 +47,7 @@ test_passenger_id=test_data["PassengerId"]
 def drop_not_concerned(data, columns):
     return data.drop(columns, axis=1)
 
-not_concerned_columns = ["PassengerId","Name", "Ticket", "Fare", "Cabin", "Embarked"]
+
 train_data = drop_not_concerned(train_data, not_concerned_columns)
 test_data = drop_not_concerned(test_data, not_concerned_columns)
 
@@ -54,7 +57,8 @@ test_data.head()
 
 def dummy_data(data, columns):
     for column in columns:
-        data = pd.concat([data, pd.get_dummies(data[column], prefix=column)], axis=1)
+        data = pd.concat([data, pd.get_dummies(data[column],
+                                               prefix=column)], axis=1)
         data = data.drop(column, axis=1)
     return data
 
@@ -103,21 +107,25 @@ print("valid_y:{}".format(valid_y.shape))
 
 
 # Build Neural Network
-def build_neural_network(hidden_units=10):
+def build_neural_network( hidden_units=12 ):
     tf.reset_default_graph()
     inputs = tf.placeholder(tf.float32, shape=[None, train_x.shape[1]])
     labels = tf.placeholder(tf.float32, shape=[None, 1])
     learning_rate = tf.placeholder(tf.float32)
-    is_training=tf.Variable(True,dtype=tf.bool)
+    is_training = tf.Variable(True,dtype=tf.bool)
     
     initializer = tf.contrib.layers.xavier_initializer()
-    fc = tf.layers.dense(inputs, hidden_units, activation=None,kernel_initializer=initializer)
-    fc=tf.layers.batch_normalization(fc, training=is_training)
-    fc=tf.nn.relu(fc)
-    
+    fc = tf.layers.dense( inputs, hidden_units, activation=None,
+                          kernel_initializer=initializer )
+    fc = tf.layers.batch_normalization( fc, training = is_training )
+    fc = tf.nn.relu(fc)
     logits = tf.layers.dense(fc, 1, activation=None)
-    cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=labels, logits=logits)
+    cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=labels,
+                                                            logits=logits)
     cost = tf.reduce_mean(cross_entropy)
+    
+    #Add dropout in neural network
+    fc = tf.nn.dropout( fc, 0.4 )
     
     with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
@@ -143,7 +151,7 @@ def get_batch(data_x,data_y,batch_size=32):
         batch_y=data_y[i*batch_size:(i+1)*batch_size]
         yield batch_x, batch_y
 
-epochs = 200
+epochs = 800
 train_collect = 50
 train_print=train_collect*2
 
@@ -163,11 +171,10 @@ with tf.Session( config=tf.ConfigProto(allow_soft_placement=True) ) as sess:
     for e in range(epochs):
         for batch_x,batch_y in get_batch(train_x,train_y,batch_size):
             iteration+=1
-            feed = {model.inputs: train_x,
-                    model.labels: train_y,
-                    model.learning_rate: learning_rate_value,
-                    model.is_training:True
-                   }
+            feed = { model.inputs: train_x,
+                     model.labels: train_y,
+                     model.learning_rate: learning_rate_value,
+                     model.is_training:True }
 
             train_loss, _, train_acc = sess.run([model.cost, model.optimizer,
                                                  model.accuracy],feed_dict=feed)
@@ -182,10 +189,9 @@ with tf.Session( config=tf.ConfigProto(allow_soft_placement=True) ) as sess:
                            "Train Loss: {:.4f}".format(train_loss),
                            "Train Acc: {:.4f}".format(train_acc))
                         
-                feed = {model.inputs: valid_x,
-                        model.labels: valid_y,
-                        model.is_training:False
-                       }
+                feed = { model.inputs: valid_x,
+                         model.labels: valid_y,
+                         model.is_training:False }
                 val_loss, val_acc = sess.run([model.cost, model.accuracy],
                                              feed_dict=feed)
                 valid_loss_collect.append(val_loss)
@@ -215,12 +221,10 @@ plt.show()
 model=build_neural_network()
 restorer=tf.train.Saver()
 with tf.Session() as sess:
-    restorer.restore(sess,"c:/pythonwork/titanic.ckpt")
-    feed={
-        model.inputs:test_data,
-        model.is_training:False
-    }
-    test_predict=sess.run(model.predicted,feed_dict=feed)
+     restorer.restore(sess,"c:/pythonwork/titanic.ckpt")
+     feed={ model.inputs:test_data,
+            model.is_training:False }
+     test_predict=sess.run( model.predicted,feed_dict=feed )
     
 test_predict[:10]
 
@@ -234,7 +238,7 @@ evaluation=passenger_id.to_frame()
 evaluation["Survived"]=test_predict_result
 evaluation[:10]
 
-evaluation.to_csv("c:/pythonwork/tf_titanic_evaluation_submission.csv",index=False)
+evaluation.to_csv("c:/pythonwork/tf_titanic_h12_drop04.csv",index=False)
 
 
 
