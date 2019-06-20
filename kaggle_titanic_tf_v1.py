@@ -93,13 +93,17 @@ test_data['Title'] = test_data.Name.map( lambda x: x.split(',')[1].split( '.' )[
 
 train_data['Title'] = train_data['Title'].replace('Mlle', 'Miss')
 train_data['Title'] = train_data['Title'].replace(['Mme','Lady','Ms'], 'Mrs')
-train_data.Title.loc[ (train_data.Title !=  'Master') & (train_data.Title != 'Mr') & (train_data.Title !=  'Miss') 
-             & (train_data.Title !=  'Mrs')] = 'Others'
+train_data.Title.loc[ (train_data.Title !=  'Master') & \
+                      (train_data.Title != 'Mr') & \
+                      (train_data.Title !=  'Miss') &\
+                      (train_data.Title !=  'Mrs')] = 'Others'
 
 test_data['Title'] = test_data['Title'].replace('Mlle', 'Miss')
 test_data['Title'] = test_data['Title'].replace(['Mme','Lady','Ms'], 'Mrs')
-test_data.Title.loc[ (test_data.Title !=  'Master') & (test_data.Title !=  'Mr') & (test_data.Title !=  'Miss') 
-             & (test_data.Title !=  'Mrs')] = 'Others'
+test_data.Title.loc[ (test_data.Title !=  'Master') & \
+                     (test_data.Title !=  'Mr') & \
+                     (test_data.Title !=  'Miss') &\
+                     (test_data.Title !=  'Mrs')] = 'Others'
 
 
 train_data = pd.get_dummies(train_data, columns=["Ticket"])
@@ -131,12 +135,12 @@ Y_train = Y[:m1-100]
 X_test = X[m1-100: m1]
 Y_test = Y[m1-100: m1]
 
-test_data = test_data.replace(["male", "female"], [0,1])
-test_data = test_data.replace(["S", "C", "Q"], [0,1,2])
-X_predict = test_data[["Pclass","Sex","Age","Family","Fare-bin",
-                       "Embarked","Ticket_1","Ticket_2","Ticket_3",
-                       "Ticket_4","Ticket_C","Ticket_P","Ticket_S",
-                       "Master","Miss","Mr","Mrs","Others"]]
+test_data = test_data.replace(["male", "female"], [ 0, 1 ])
+test_data = test_data.replace(["S", "C", "Q"], [ 0, 1, 2 ])
+X_predict = test_data[ [ "Pclass", "Sex", "Age", "Family", "Fare-bin",
+                        "Embarked", "Ticket_1", "Ticket_2", "Ticket_3",
+                        "Ticket_4", "Ticket_C", "Ticket_P", "Ticket_S",
+                        "Master", "Miss", "Mr", "Mrs", "Others" ] ]
 
 
 X_train.shape, Y_train.shape, X_test.shape, Y_test.shape, X_predict.shape
@@ -159,38 +163,31 @@ n_y = 1 #output units
 def create_placeholders(n_x, n_y):
     X = tf.placeholder(tf.float32, [n_x, None], name = 'X')
     Y = tf.placeholder(tf.float32, [n_y, None], name = 'Y')
-
     return X,Y
 
 
 def intialize_params():
-    W1 = tf.get_variable("W1", [n_h1,n_x],
+    W1 = tf.get_variable("W1", [ n_h1, n_x ],
                          initializer= tf.contrib.layers.xavier_initializer(seed=1) )
-    b1 = tf.get_variable("b1", [n_h1, 1],
+    b1 = tf.get_variable("b1", [ n_h1, 1 ],
                          initializer= tf.zeros_initializer())
-    W2 = tf.get_variable("W2", [n_h2,n_h1],
+    W2 = tf.get_variable("W2", [ n_h2, n_h1 ],
                          initializer= tf.contrib.layers.xavier_initializer(seed=1) )
-    b2 = tf.get_variable("b2", [n_h2, 1],
+    b2 = tf.get_variable("b2", [ n_h2, 1 ],
                          initializer= tf.zeros_initializer())
-    W3 = tf.get_variable("W3", [n_h3,n_h2],
+    W3 = tf.get_variable("W3", [ n_h3, n_h2 ],
                          initializer= tf.contrib.layers.xavier_initializer(seed=1) )
-    b3 = tf.get_variable("b3", [n_h3, 1],
+    b3 = tf.get_variable("b3", [ n_h3, 1 ],
                          initializer= tf.zeros_initializer())
-    W4 = tf.get_variable("W4", [n_y,n_h3],
+    W4 = tf.get_variable("W4", [ n_y, n_h3 ],
                          initializer= tf.contrib.layers.xavier_initializer(seed=1) )
-    b4 = tf.get_variable("b4", [n_y, 1],
+    b4 = tf.get_variable("b4", [ n_y, 1 ],
                          initializer= tf.zeros_initializer())
     
-    parameters = {
-        "W1": W1,
-        "b1": b1,
-        "W2": W2,
-        "b2": b2,
-        "W3": W3,
-        "b3": b3,
-        "W4": W4,
-        "b4": b4
-    }
+    parameters = { "W1": W1, "b1": b1, 
+                   "W2": W2, "b2": b2, 
+                   "W3": W3, "b3": b3, 
+                   "W4": W4, "b4": b4  }
     return parameters
 
 
@@ -220,46 +217,34 @@ def forward_prop(X, parameters, keep_prob):
 
 def compute_cost(A3, Y):
     logits  = tf.transpose(A3)
-    labels = tf.transpose(Y) 
-    
-    cost = tf.losses.mean_squared_error(labels=labels, predictions=logits)
-    
+    labels = tf.transpose(Y)     
+    cost = tf.losses.mean_squared_error(labels=labels, predictions=logits)    
     return cost
 
 
 def model(X_train, Y_train, X_test, Y_test, learning_rate = 0.01,
-          num_epochs = 3000, print_cost = True):
+          num_epochs = 5000, print_cost = True):
     ops.reset_default_graph()
     tf.set_random_seed(1)
-    seed=3
-    
+    seed=3    
     [n_x, m] = X_train.shape
-    n_y = Y_train.shape[0]
-    
-    costs= []
-    
-    X, Y = create_placeholders(n_x, n_y)
-    
-    keep_prob = tf.placeholder(tf.float32)
-    
-    parameters = intialize_params()
-    
-    A3 = forward_prop(X, parameters, keep_prob)
-    
-    cost = compute_cost(A3, Y)
-    
-    optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
-    
+    n_y = Y_train.shape[0]    
+    costs= []   
+    X, Y = create_placeholders(n_x, n_y)    
+    keep_prob = tf.placeholder(tf.float32)    
+    parameters = intialize_params()    
+    A3 = forward_prop(X, parameters, keep_prob)    
+    cost = compute_cost(A3, Y)    
+    optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)    
     init = tf.global_variables_initializer()
     
     with tf.Session() as sess:
-        sess.run(init)
-        
+        sess.run(init)        
         for epoch in range(num_epochs):
             epoch_cost = 0
             _, epoch_cost = sess.run([optimizer, cost],
                                      feed_dict={X:X_train, Y: Y_train,
-                                                keep_prob : 0.5})
+                                                keep_prob : 0.4 })
             # Print the cost every epoch
             if print_cost == True and epoch % 100 == 0:
                 print ("Cost after epoch %i: %f" % (epoch, epoch_cost))
@@ -272,31 +257,32 @@ def model(X_train, Y_train, X_test, Y_test, learning_rate = 0.01,
         plt.grid('True')
         plt.title("Learning rate =" + str(learning_rate))
         plt.show()
-
-        parameters = sess.run(parameters)
-        
-        correct_prediction = tf.equal(tf.round(A3), Y)
-        
+        parameters = sess.run( parameters )
+        correct_prediction = tf.equal(tf.round(A3), Y)        
         # Calculate accuracy on the test set
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 
-        print("Train Accuracy:", accuracy.eval({X: X_train, Y: Y_train, keep_prob : 1.0}))
-        print("Test Accuracy:", accuracy.eval({X: X_test, Y: Y_test, keep_prob : 1.0}))
-        
+        print("Train Accuracy:", accuracy.eval({ X: X_train, Y: Y_train,
+                                                 keep_prob : 0.4 }))
+        print("Test Accuracy:", accuracy.eval({ X: X_test, Y: Y_test,
+                                                keep_prob : 0.4 }))       
         return parameters
 
+#Running main script
 parameters = model(X_train, Y_train, X_test, Y_test)
 
 def predict(X_predict, parameters):
     X, Y = create_placeholders(n_x, n_y)
     keep_prob = tf.placeholder(tf.float32)
-    Y_pred = tf.cast(tf.round(forward_prop(X, parameters, keep_prob)), tf.int32) 
+    Y_pred = tf.cast(tf.round(forward_prop( X, parameters, keep_prob )),
+                     tf.int32) 
     init = tf.global_variables_initializer()
     with tf.Session() as sess:
         sess.run(init)
-        Y_pred = sess.run(Y_pred, feed_dict={X:X_predict, keep_prob:1.0})        
+        Y_pred = sess.run(Y_pred, feed_dict={X:X_predict, keep_prob: 0.4 } )
     return Y_pred 
 
+#Running script of prediction
 predictions = predict(X_predict, parameters)
 predictions.shape #(1, 418)
 
@@ -304,14 +290,8 @@ index = test_data["PassengerId"]
 predictions = predictions.transpose().reshape(test_data["PassengerId"].shape)
 submission = pd.DataFrame( { "PassengerId": test_data["PassengerId"],
                              "Survived": predictions } )
-
-
-
-
-
-
 #output the result
-
-submission.to_csv("c:/pythonwork/tf_titanic_2019_6_19_drop04.csv",index=False)
+submission.to_csv("c:/pythonwork/tf_4L_MLP_titanic_2019_6_20_keep0.4.csv",
+                  index=False)
 
 
